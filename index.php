@@ -8,6 +8,7 @@
     href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css"
     rel="stylesheet"
     />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>EduTech | For better future</title>
 </head>
 <body>
@@ -18,10 +19,10 @@
         <div class="flex justify-center items-center mt-10">
             <img src="./images/logo.png" alt="logo" class="w-[200px]">
         </div>
-            <form class="flex justify-center flex-col mt-[70px]">
+            <form class="flex justify-center flex-col mt-[70px]" method='post'>
 
                 <div class="pb-[30px] px-[40px]">
-                    <input type="text" name="UserName" placeholder="Login Id" class="border-b w-[90%]  text-xl pb-2 focus:outline-none focus:border-indigo-500">
+                    <input type="text" name="username" placeholder="Login Id" class="border-b w-[90%]  text-xl pb-2 focus:outline-none focus:border-indigo-500">
                 </div>
     
                 <div class="pb-[30px] px-[40px]">
@@ -53,18 +54,18 @@
         <div class="w-[40%] h-screen">
             <img src="./images/logo.png" alt="Logo" class="w-[250px] mx-auto mt-10">
 
-            <form class="mt-[50px]">
-                <div class="pb-5 mx-12">
-                    <input type="text" name="UserName" placeholder="Login Id" class="flex flex-col pb-2 border-b w-[80%] focus:outline-none focus:border-indigo-500">
+            <form class="mt-[50px]" method="post">
+                <div class="mx-12">
+                    <input type="text" name="username" placeholder="Login Id" class="flex flex-col pb-1 border-b w-[80%] focus:outline-none focus:border-indigo-500">
                 </div>
-                <div class="py-3 mx-12">
-                    <input type="password" name="Password" placeholder="Password" class="flex flex-col pb-2 border-b w-[80%] focus:outline-none focus:border-indigo-500">
+                <div class="py-5 mx-12">
+                    <input type="password" name="password" placeholder="Password" class="flex flex-col pb-1 border-b w-[80%] focus:outline-none focus:border-indigo-500">
                 </div>
 
                 <div class="flex justify-evenly w-[90%] items-center pt-5">
                     <a href="##" class="text-blue-600">Forget Password?</a>
                     <button class="px-[18px] py-[7px] bg-blue-600 rounded font-normal text-white tracking-wide">LOGIN
-                        <i class="ri-login-box-line text-xl"></i> </button>
+                        <i class="ri-login-box-line text-xl"></i>
                     </button>
                 </div>
 
@@ -84,3 +85,47 @@
      
 </body>
 </html>
+
+<?php
+
+    session_start(); // Start the session at the beginning
+    
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $_SESSION['loggedin'] = false;
+    
+        // Get the username and password from POST and sanitize input
+        $username = $_POST['username'];
+        $password = $_POST['password'];
+    
+       if(empty($username && $password)){
+           echo "<script>alert('Please enter your userid or password')</script>";
+       }
+       else{
+                   // Create a new MySQLi connection
+        $conn = new mysqli("localhost", "root", "admin", "edutech", 3306);
+    
+        // Check connection
+        if ($conn->connect_error) {
+            die("Connection failed: " . $conn->connect_error);
+        }
+        // Use prepared statements to prevent SQL injection
+        $stmt = $conn->prepare("SELECT * FROM student WHERE Adm_no = ? AND Password = ?");
+        $stmt->bind_param("ss", $username, $password); // Bind parameters
+        $stmt->execute();
+        $result = $stmt->get_result();
+    
+        // Check if a user exists with the provided credentials
+        if ($result->num_rows == 1) { 
+            $_SESSION['loggedin'] = true;
+            header('location: student/student_index.php');
+            exit(); // Always use exit after header redirection
+        } else {
+          echo "<script>alert('Wrong Username or Password');</script>";
+        }
+    
+        // Close the statement and connection
+        $stmt->close();
+        $conn->close();
+       }
+    }
+?>
